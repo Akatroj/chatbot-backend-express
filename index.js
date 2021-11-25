@@ -19,3 +19,7 @@ app.post('/dialogflow', (req, res) => {
 function intentHandler(agent) {
   agent.add("dzialam!");
 }
+
+app.listen(3000, () => {
+  console.log("Server is Running on port 3000")
+})
