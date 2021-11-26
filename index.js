@@ -16,6 +16,8 @@ app.post('/dialogflow', (req, res) => {
   const intentMap = new Map();
   intentMap.set('Oblicz-koszt', calculateCost);
   intentMap.set('Data-spotkania', createAppointment);
+  intentMap.set('Czy-termin-wolny', checkDate);
+
   agent.handleRequest(intentMap);
   console.log(agent.intent);
 });
@@ -25,8 +27,26 @@ function calculateCost(agent) {
 
   let cena = 8000 * male + 18000 * srednie + 36000 * duze;
   cena = (cena > 0) ? cena + 100 : 0;
-  agent.context.delete();
+  agent.context.delete('wyliczenie-ceny-followup');
   agent.add(`Instalacja ${duze} dużych paneli, ${srednie} średnich paneli oraz ${male} małych paneli kosztowałaby około ${cena} złotych.`);
+}
+
+async function checkDate(agent) {
+  const { data } = agent.parameters;
+  const startDate = new Date(data.date_time || data);
+  console.log(startDate);
+  const appointmentTimeString = startDate.toLocaleString('pl-PL');
+  const endDate = new Date(startDate);
+  endDate.setHours(endDate.getHours() + 2);
+
+  try {
+    const result = await canMakeAppointment(startDate, endDate);
+    agent.add(`Tak, ${appointmentTimeString} mamy wolny termin. Czy chce pan umówić się na spotkanie?`);
+  }
+  catch (err) {
+    console.log(err);
+    agent.add('Niestety, w tym terminie jesteśmy zajęci. Możesz spróbować w innym terminie. Czy chcesz umówić się na spotkanie?');
+  }
 }
 
 async function createAppointment(agent) {
