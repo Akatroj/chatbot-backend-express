@@ -1,5 +1,4 @@
 const express = require('express');
-const { google } = require('googleapis');
 const { WebhookClient } = require('dialogflow-fulfillment');
 
 const { makeAppointment, canMakeAppointment } = require('./calendar.js');
@@ -30,25 +29,24 @@ function calculateCost(agent) {
   agent.add(`Instalacja ${duze} dużych paneli, ${srednie} średnich paneli oraz ${male} małych paneli kosztowałaby około ${cena} złotych.`);
 }
 
-function createAppointment(agent) {
+async function createAppointment(agent) {
   const { imie, nazwisko, adresklienta, dataspotkania } = agent.contexts.find(obj => obj.name === 'adres-klienta-followup').parameters;
-  // console.log(adresklienta, imie, nazwisko, dataspotkania);
+
   const startDate = new Date(dataspotkania.date_time || dataspotkania);
+  const appointmentTimeString = startDate.toLocaleString('pl-PL');
   const endDate = new Date(startDate);
   endDate.setHours(endDate.getHours() + 2);
 
   const clientName = imie + ' ' + nazwisko;
-  const clientAddress = Object.values(adresklienta).toString();
+  const clientAddress = Object.values(adresklienta).filter(entry => entry !== '').toString();
 
-  const appointmentTimeString = startDate.toLocaleString('pl-PL');
-  agent.contexts.length = 0;
-  return makeAppointment(startDate.toISOString(), endDate.toISOString(), clientName, clientAddress).then(result => {
-    // console.log(result);
-    agent.add(`Zarezerwowałam termin spotkania na ${appointmentTimeString}.`)
-  }).catch(err => {
+  try {
+    const result = await makeAppointment(startDate.toISOString(), endDate.toISOString(), clientName, clientAddress);
+    agent.add(`Zarezerwowałam termin spotkania na ${appointmentTimeString}.`);
+  } catch (err) {
     console.log(err);
     agent.add('Niestety, nie udało się utworzyć spotkania. Proszę spróbować w innym terminie.');
-  });
+  }
 }
 
 app.listen(port, () => {

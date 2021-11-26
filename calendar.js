@@ -13,7 +13,6 @@ const serviceAccountAuth = new google.auth.JWT({
 });
 
 const calendar = google.calendar('v3');
-console.log(private_key);
 
 async function canMakeAppointment(dateTimeStart, dateTimeEnd) {
   const calendarResponse = await calendar.events.list({
