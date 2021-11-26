@@ -31,20 +31,24 @@ function calculateCost(agent) {
 }
 
 function createAppointment(agent) {
-  // const startDate = agent.parameters.dataspotkania;
-  // console.log(agent.contexts);
-  console.log("dupa");
-  // console.log(agent.context.contexts);
   const { imie, nazwisko, adresklienta, dataspotkania } = agent.contexts.find(obj => obj.name === 'adres-klienta-followup').parameters;
-  console.log(adresklienta, imie, nazwisko, dataspotkania);
-  // const dateTimeStart = new Date(Date.parse(agent.parameters.date.split('T')[0] + 'T' + agent.parameters.time.split('T')[1].split('-')[0] + timeZoneOffset));
-  // const dateTimeEnd = new Date(new Date(dateTimeStart).setHours(dateTimeStart.getHours() + 1));
-  // const appointmentTimeString = dateTimeStart.toLocaleString(
-  //    'en-US',
-  //    { month: 'long', day: 'numeric', hour: 'numeric', timeZone: timeZone }
-  //  );
-  // makeAppointment();
-  agent.send('DUPSKO');
+  // console.log(adresklienta, imie, nazwisko, dataspotkania);
+  const startDate = new Date(dataspotkania.date_time || dataspotkania);
+  const endDate = new Date(startDate);
+  endDate.setHours(endDate.getHours() + 2);
+
+  const clientName = imie + ' ' + nazwisko;
+  const clientAddress = Object.values(adresklienta).toString();
+
+  const appointmentTimeString = startDate.toLocaleString('pl-PL');
+  agent.contexts.length = 0;
+  return makeAppointment(startDate.toISOString(), endDate.toISOString(), clientName, clientAddress).then(result => {
+    // console.log(result);
+    agent.add(`Zarezerwowałam termin spotkania na ${appointmentTimeString}.`)
+  }).catch(err => {
+    console.log(err);
+    agent.add('Niestety, nie udało się utworzyć spotkania. Proszę spróbować w innym terminie.');
+  });
 }
 
 app.listen(port, () => {

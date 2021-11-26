@@ -3,7 +3,7 @@ const { google } = require('googleapis');
 
 const calendarID = process.env.CALENDARID;
 const client_email = process.env.CLIENT_EMAIL;
-const private_key = process.env.PRIVATE_KEY;
+const private_key = JSON.parse(process.env.PRIVATE_KEY);
 
 
 const serviceAccountAuth = new google.auth.JWT({
@@ -13,25 +13,27 @@ const serviceAccountAuth = new google.auth.JWT({
 });
 
 const calendar = google.calendar('v3');
+console.log(private_key);
 
 async function canMakeAppointment(dateTimeStart, dateTimeEnd) {
   const calendarResponse = await calendar.events.list({
     auth: serviceAccountAuth, // List events for time period
     calendarId: calendarID,
-    timeMin: dateTimeStart.toISOString(),
-    timeMax: dateTimeEnd.toISOString()
+    timeMin: dateTimeStart,
+    timeMax: dateTimeEnd
   });
   return calendarResponse.data.items.length == 0;
 }
 
-async function makeAppointment(dateTimeStart, dateTimeEnd) {
+async function makeAppointment(dateTimeStart, dateTimeEnd, clientName, clientAddress) {
   const isFree = await canMakeAppointment(dateTimeStart, dateTimeEnd);
   if (!isFree) throw new Error("Termin zajety");
   const result = await calendar.events.insert({
     auth: serviceAccountAuth,
     calendarId: calendarID,
     resource: {
-      summary: appointment_type + ' Appointment', description: appointment_type,
+      summary: `Spotkanie z ${clientName}`,
+      description: `Wycena usług dla ${clientName} mieszkającego pod adresem ${clientAddress}`,
       start: { dateTime: dateTimeStart },
       end: { dateTime: dateTimeEnd }
     }
