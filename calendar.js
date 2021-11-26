@@ -1,13 +1,13 @@
 const calendarID = process.env.CALENDARID;
 const client_email = process.env.CLIENT_EMAIL;
-const private_key = process.env.PRIAVTE_KEY;
+const private_key = process.env.PRIVATE_KEY;
 
 const functions = require('firebase-functions');
 const { google } = require('googleapis');
 
 const serviceAccountAuth = new google.auth.JWT({
   email: client_email,
-  key: serviceAccount.private_key,
+  key: private_key,
   scopes: 'https://www.googleapis.com/auth/calendar'
 });
 
