@@ -28,7 +28,7 @@ function calculateCost(agent) {
   let cena = 8000 * male + 18000 * srednie + 36000 * duze;
   cena = (cena > 0) ? cena + 100 : 0;
   agent.context.delete('wyliczenie-ceny-followup');
-  agent.add(`Instalacja ${duze} dużych paneli, ${srednie} średnich paneli oraz ${male} małych paneli kosztowałaby około ${cena} złotych.`);
+  agent.add(`Instalacja ${duze} dużych paneli, ${srednie} średnich paneli oraz ${male} małych paneli kosztowałaby około ${cena} złotych. Czy chcesz umówić się na spotkanie w celu instalacji tych paneli?`);
 }
 
 async function checkDate(agent) {
@@ -39,9 +39,18 @@ async function checkDate(agent) {
   const endDate = new Date(startDate);
   endDate.setHours(endDate.getHours() + 2);
 
+  if (startDate < Date.now()) {
+    agent.add('Ten termin już przeminął...');
+    return;
+  }
+  else if (startDate.getFullYear() > new Date().getFullYear() + 1) {
+    agent.add('Ten termin jest zbyt późno!');
+    return;
+  }
+
   try {
     const result = await canMakeAppointment(startDate, endDate);
-    agent.add(`Tak, ${appointmentTimeString} mamy wolny termin. Czy chce pan umówić się na spotkanie?`);
+    agent.add(`Tak, ${appointmentTimeString} mamy wolny termin. Czy chcesz umówić się na spotkanie?`);
   }
   catch (err) {
     console.log(err);
@@ -59,6 +68,15 @@ async function createAppointment(agent) {
 
   const clientName = imie + ' ' + nazwisko;
   const clientAddress = Object.values(adresklienta).filter(entry => entry !== '').toString();
+
+  if (startDate < Date.now()) {
+    agent.add('Ten termin już przeminął...');
+    return;
+  }
+  else if (startDate.getFullYear() > new Date().getFullYear() + 1) {
+    agent.add('Ten termin jest zbyt późno!');
+    return;
+  }
 
   try {
     const result = await makeAppointment(startDate.toISOString(), endDate.toISOString(), clientName, clientAddress);
