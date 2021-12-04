@@ -1,9 +1,11 @@
+'use strict';
+
 const { google } = require('googleapis');
 
 
 const calendarID = process.env.CALENDARID;
 const client_email = process.env.CLIENT_EMAIL;
-const private_key = JSON.parse(process.env.PRIVATE_KEY);
+const private_key = JSON.parse(process.env.PRIVATE_KEY ?? '{}');
 
 
 const serviceAccountAuth = new google.auth.JWT({
