@@ -30,6 +30,7 @@ async function checkDate(agent) {
 
   try {
     const result = await canMakeAppointment(startDate, endDate);
+    if (!result) throw new Error("test");
     agent.context.set('Czy-termin-wolny-followup', 1);
     agent.add(`Tak, ${appointmentTimeString} mamy wolny termin. Czy chcesz umówić się na spotkanie?`);
   }
